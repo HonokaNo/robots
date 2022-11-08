@@ -32,7 +32,7 @@ func Parse(url, UA string) (Robots, error) {
 
 	for _, v := range strings.Split(body, "\n") {
 		if strings.HasPrefix(v, "User-agent: ") {
-			arg := v[len("User-agent:"):]
+			arg := v[len("User-agent: "):]
 
 			disableUA = !(arg == "*" || arg == UA)
 		} else if !disableUA {
