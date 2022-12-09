@@ -40,9 +40,11 @@ func Parse(url, UA string) (Robots, error) {
 				robots.Allowlist = append(robots.Allowlist, v[len("Allow: "):])
 			} else if strings.HasPrefix(v, "Disallow: ") {
 				robots.Disallowlist = append(robots.Disallowlist, v[len("Disallow: "):])
-			} else if strings.HasPrefix(v, "Sitemap: ") {
-				robots.Sitemaps = append(robots.Sitemaps, v[len("Sitemap: "):])
 			}
+		}
+
+		if strings.HasPrefix(v, "Sitemap: ") {
+			robots.Sitemaps = append(robots.Sitemaps, v[len("Sitemap: "):])
 		}
 	}
 
