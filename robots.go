@@ -1,9 +1,10 @@
 package robots
 
 import (
-	"io"
-	"net/http"
+	"net/url"
 	"strings"
+
+	"github.com/HonokaNo/cacheget"
 )
 
 type Robots struct {
@@ -15,26 +16,27 @@ type Robots struct {
 func Parse(url, UA string) (Robots, error) {
 	var robots Robots
 
-	resp, err := http.Get(url)
+	bbody, _, err := cacheget.CacheGet(url)
 	if err != nil {
-		return robots, err
-	}
-
-	bbody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return robots, err
+		return Robots{[]string{}, []string{}, []string{}}, err
 	}
 	body := string(bbody)
 
 	body = strings.ReplaceAll(body, "\r\n", "\n")
 
-	disableUA := false
+	foundUA := false
+	disableUA := true
 
 	for _, v := range strings.Split(body, "\n") {
 		if strings.HasPrefix(v, "User-agent: ") {
 			arg := v[len("User-agent: "):]
 
-			disableUA = !(arg == "*" || arg == UA)
+			if arg == UA {
+				foundUA = true
+				disableUA = false
+			} else if !foundUA && arg == "*" {
+				disableUA = false
+			}
 		} else if !disableUA {
 			if strings.HasPrefix(v, "Allow: ") {
 				robots.Allowlist = append(robots.Allowlist, v[len("Allow: "):])
@@ -49,4 +51,29 @@ func Parse(url, UA string) (Robots, error) {
 	}
 
 	return robots, nil
+}
+
+func IsAllowURL(target url.URL, robots Robots) bool {
+	search := target
+	allow := true
+
+	for _, v := range robots.Disallowlist {
+		search.Path = v[1:]
+
+		if strings.HasPrefix(target.String(), search.String()) {
+			allow = false
+			break
+		}
+	}
+
+	for _, v := range robots.Allowlist {
+		search.Path = v[1:]
+
+		if !allow && strings.HasPrefix(target.String(), search.String()) {
+			allow = true
+			break
+		}
+	}
+
+	return allow
 }
