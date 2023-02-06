@@ -62,7 +62,6 @@ func IsAllowURL(target url.URL, robots Robots) bool {
 
 		if strings.HasPrefix(target.String(), search.String()) {
 			allow = false
-			break
 		}
 	}
 
@@ -71,7 +70,6 @@ func IsAllowURL(target url.URL, robots Robots) bool {
 
 		if !allow && strings.HasPrefix(target.String(), search.String()) {
 			allow = true
-			break
 		}
 	}
 
