@@ -57,11 +57,25 @@ func IsAllowURL(target url.URL, robots Robots) bool {
 	search := target
 	allow := true
 
+	/* TODO: *と$に対応する */
 	for _, v := range robots.Disallowlist {
-		search.Path = v[1:]
+		if v[len(v)-1] == '$' || v[len(v)-1] == '*' {
+			search.Path = v[1 : len(v)-2]
+		} else {
+			search.Path = v[1:]
+		}
 
-		if strings.HasPrefix(target.String(), search.String()) {
+		if v[len(v)-1] == '$' {
+			if target.String() == search.String() {
+				allow = false
+				break
+			}
+		} else if strings.HasPrefix(target.String(), search.String()) {
+			/* if end of v is *, pass through */
 			allow = false
+			if v[len(v)-1] == '*' {
+				break
+			}
 		}
 	}
 
