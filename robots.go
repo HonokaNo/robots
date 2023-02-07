@@ -36,6 +36,8 @@ func Parse(url, UA string) (Robots, error) {
 				disableUA = false
 			} else if !foundUA && arg == "*" {
 				disableUA = false
+			} else {
+				disableUA = true
 			}
 		} else if !disableUA {
 			if strings.HasPrefix(v, "Allow: ") {
@@ -57,10 +59,9 @@ func IsAllowURL(target url.URL, robots Robots) bool {
 	search := target
 	allow := true
 
-	/* TODO: *と$に対応する */
 	for _, v := range robots.Disallowlist {
 		if v[len(v)-1] == '$' || v[len(v)-1] == '*' {
-			search.Path = v[1 : len(v)-2]
+			search.Path = v[1 : len(v)-1]
 		} else {
 			search.Path = v[1:]
 		}
