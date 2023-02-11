@@ -2,6 +2,7 @@ package robots
 
 import (
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/HonokaNo/cacheget"
@@ -56,35 +57,35 @@ func Parse(url, UA string) (Robots, error) {
 }
 
 func IsAllowURL(target url.URL, robots Robots) bool {
-	search := target
 	allow := true
 
 	for _, v := range robots.Disallowlist {
-		if v[len(v)-1] == '$' || v[len(v)-1] == '*' {
-			search.Path = v[1 : len(v)-1]
-		} else {
-			search.Path = v[1:]
+		v = strings.ReplaceAll(v, "*", ".*?")
+		/* check prefix */
+		if v[len(v)-1] != '$' || v[len(v)-1] == '/' {
+			v += ".*"
 		}
-
-		if v[len(v)-1] == '$' {
-			if target.String() == search.String() {
+		r, err := regexp.Compile(v)
+		/* if error, skip it. */
+		if err == nil {
+			if r.Match([]byte(target.String())) {
 				allow = false
-				break
-			}
-		} else if strings.HasPrefix(target.String(), search.String()) {
-			/* if end of v is *, pass through */
-			allow = false
-			if v[len(v)-1] == '*' {
-				break
 			}
 		}
 	}
 
 	for _, v := range robots.Allowlist {
-		search.Path = v[1:]
-
-		if !allow && strings.HasPrefix(target.String(), search.String()) {
-			allow = true
+		v = strings.ReplaceAll(v, "*", ".*?")
+		/* check prefix */
+		if v[len(v)-1] != '$' || v[len(v)-1] == '/' {
+			v += ".*"
+		}
+		r, err := regexp.Compile(v)
+		/* if error, skip it. */
+		if err == nil {
+			if r.Match([]byte(target.String())) {
+				allow = true
+			}
 		}
 	}
 
