@@ -32,7 +32,7 @@ func Parse(url, UA string) (Robots, error) {
 		if strings.HasPrefix(v, "User-agent: ") {
 			arg := v[len("User-agent: "):]
 
-			if arg == UA {
+			if strings.ToLower(arg) == strings.ToLower(UA) {
 				foundUA = true
 				disableUA = false
 			} else if !foundUA && arg == "*" {
@@ -48,7 +48,7 @@ func Parse(url, UA string) (Robots, error) {
 			}
 		}
 
-		if strings.HasPrefix(v, "Sitemap: ") {
+		if strings.HasPrefix(strings.ToLower(v), "sitemap: ") {
 			robots.Sitemaps = append(robots.Sitemaps, v[len("Sitemap: "):])
 		}
 	}
